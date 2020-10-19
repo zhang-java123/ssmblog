@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zhang.dao.LinkDao">
+
+    <resultMap id="LinkResult" type="com.zhang.pojo.Link">
+        <result property="id" column="id"/>
+        <result property="linkName" column="linkName"/>
+        <result property="linkurl" column="linkurl"/>
+        <result property="orderNum" column="orderNum"/>
+    </resultMap>
+
+    <!--根据id查询一条友情链接-->
+    <select id="findById" parameterType="Integer" resultMap="LinkResult">
+        SELECT * FROM t_link
+        WHERE id = #{id}
+    </select>
+
+    <!--不固定参数查询友情链接-->
+    <select id="listLink" parameterType="Map" resultMap="LinkResult">
+        SELECT * FROM t_link
+        order by orderNum
+        <if test="start != null and size != null">
+            LIMIT #{start},${size}
+        </if>
+
+    </select>
+
+    <!--不固定参数查询博客类型列表总数-->
+    <select id="getTotal" parameterType="Map" resultType="Long">
+        SELECT count(*) from t_link
+    </select>
+
+    <!--添加博客类型-->
+    <insert id="addLink" parameterType="com.zhang.pojo.Link">
+        INSERT INTO t_link(linkName, linkurl, orderNum)
+        VALUES (#{linkName},#{linkurl},#{orderNum})
+    </insert>
+
+    <!--修改博客类型-->
+    <update id="updateLink" parameterType="com.zhang.pojo.Link">
+        UPDATE t_link
+        <set>
+            <if test="linkName!=null and linkName!=''">
+                linkName=#{linkName},
+            </if>
+            <if test="linkurl !=null and linkurl !=''">
+                linkurl=#{linkurl},
+            </if>
+            <if test="orderNum !=null and orderNum !=''">
+                orderNum=#{orderNum}
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+
+    <!--删除博客类型-->
+    <delete id="deleteLink" parameterType="Integer">
+        DELETE FROM t_link WHERE id=#{id}
+    </delete>
+
+
+</mapper>

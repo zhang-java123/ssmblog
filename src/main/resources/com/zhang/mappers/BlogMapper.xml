@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zhang.dao.BlogDao">
+
+    <resultMap id="BlogResult" type="com.zhang.pojo.Blog">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="releaseDate" column="releaseDate"/>
+        <result property="clickHit" column="clickHit"/>
+        <result property="replyHit" column="replyHit"/>
+        <result property="content" column="content"/>
+        <result property="keyWord" column="keyWord"/>
+        <association property="blogType" column="type_id" select="com.zhang.dao.BlogTypeDao.findById"/>
+    </resultMap>
+
+    <!--无参数查询所有博客列表-->
+    <select id="countList" resultMap="BlogResult">
+        SELECT date_format(releaseDate,'%Y年%m月') AS releaseDateStr,count(*) AS blogCount
+        FROM t_blog GROUP BY date_format(releaseDate,'%Y年%m月')
+        ORDER BY date_format(releaseDate,'%Y年%m月') DESC
+    </select>
+
+    <!--带参数查询博客列表-->
+    <select id="list" parameterType="Map" resultMap="BlogResult">
+        SELECT * from t_blog
+        <where>
+            <if test="title != null and title !=''">
+                and title like #{title}
+            </if>
+            <if test="type_id != null and type_id !=''">
+                and type_id = #{type_id}
+            </if>
+            <if test="releaseDateStr != null and releaseDateStr !=''">
+                and date_format(releaseDate,'%Y年%m月') = #{releaseDateStr}
+            </if>
+        </where>
+        order by releaseDate DESC
+        <if test="start!= null and size != null">
+            limit #{start},#{size}
+        </if>
+    </select>
+
+    <!--带参数查询博客数量-->
+    <select id="getTotal" parameterType="Map" resultType="Long">
+        SELECT count(*) from t_blog
+        <where>
+            <if test="title != null and title !=''">
+                and title like #{title}
+            </if>
+            <if test="type_id != null and type_id !=''">
+                and type_id = #{type_id}
+            </if>
+            <if test="releaseDateStr != null and releaseDateStr !=''">
+                and date_format(releaseDate,'%Y年%m月') = #{releaseDateStr}
+            </if>
+        </where>
+    </select>
+
+    <!--根据id查询一条博客信息-->
+    <select id="findById" parameterType="Integer" resultMap="BlogResult">
+        SELECT * from t_blog
+        WHERE id = #{id}
+    </select>
+
+    <!--添加博客-->
+    <insert id="addBlog" useGeneratedKeys="true" keyProperty="id" parameterType="com.zhang.pojo.Blog">
+        INSERT INTO t_blog VALUE (NULL ,#{title},#{summary},now(),0,0,#{content},#{keyWord},#{blogType.id})
+    </insert>
+
+
+    <!--修改博客-->
+    <update id="updateBlog" parameterType="com.zhang.pojo.Blog">
+        UPDATE t_blog
+        <set>
+            <if test="title != null and title != ''">
+                title=#{title},
+            </if>
+            <if test="summary != null and summary != ''">
+                summary=#{summary},
+            </if>
+            <if test="content != null and content != ''">
+                content=#{content},
+            </if>
+
+            <if test="blogType.id != null">
+                type_id=#{blogType.id},
+            </if>
+
+            <if test="clickHit != null">
+                clickHit=#{clickHit},
+            </if>
+            <if test="replyHit != null">
+                replyHit=#{replyHit},
+            </if>
+
+            <if test="keyWord != null and keyWord != ''">
+                keyWord=#{keyWord}
+            </if>
+        </set>
+        WHERE id=#{id}
+    </update>
+
+    <!--根据id删除一条博客-->
+    <delete id="deleteBlog" parameterType="Integer">
+        DELETE FROM t_blog
+        WHERE id=#{id}
+    </delete>
+
+    <!--根据类型查询博客数量-->
+    <select id="getBlogByTypeId" parameterType="Integer" resultType="Integer">
+        SELECT count(*) FROM t_blog
+        WHERE type_id = #{type_id}
+    </select>
+
+    <!--根据当前博客查询上一篇-->
+    <select id="getLastBlog" parameterType="Integer" resultMap="BlogResult">
+        SELECT * FROM t_blog
+        WHERE id&lt;#{id}
+        ORDER BY id DESC LIMIT 1
+    </select>
+
+
+    <!--根据当前博客查询下一篇-->
+    <select id="getNextBlog" parameterType="Integer" resultMap="BlogResult">
+        SELECT * FROM t_blog
+        WHERE id&gt;#{id}
+        ORDER BY id  LIMIT 1
+    </select>
+</mapper>

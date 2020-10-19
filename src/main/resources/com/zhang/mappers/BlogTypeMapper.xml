@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zhang.dao.BlogTypeDao">
+
+    <resultMap id="BlogTypeResult" type="com.zhang.pojo.BlogType">
+        <result property="id" column="id"/>
+        <result property="typeName" column="typeName"/>
+        <result property="orderNum" column="orderNum"/>
+        <result property="blogCount" column="blogCount"/>
+    </resultMap>
+
+    <!--查询全部博客类型列表-->
+    <select id="countList"  resultMap="BlogTypeResult">
+        select t2.id,t2.typeName,
+        (select count(*) from t_blog t1 where t1.type_id=t2.id) blogCount
+        from t_blogtype t2
+    </select>
+
+    <!--根据id查询一条博客类型-->
+    <select id="findById" parameterType="Integer" resultMap="BlogTypeResult">
+        SELECT * FROM t_blogtype
+        WHERE id = #{id}
+    </select>
+
+    <!--不固定参数查询博客类型列表-->
+    <select id="list" parameterType="Map" resultMap="BlogTypeResult">
+        SELECT * FROM t_blogtype
+        <if test="typeName!=null and typeName!=''">
+            WHERE typeName=#{typeName}
+        </if>
+        order by orderNum
+        <if test="start != null and size != null">
+            LIMIT #{start},${size}
+        </if>
+
+    </select>
+
+    <!--不固定参数查询博客类型列表总数-->
+    <select id="getTotal" parameterType="Map" resultType="Long">
+        SELECT count(*) from t_blogtype
+    </select>
+
+    <!--添加博客类型-->
+    <insert id="add" parameterType="BlogType">
+        INSERT INTO t_blogtype(typeName, orderNum) values(#{typeName}, #{orderNum})
+    </insert>
+
+    <!--修改博客类型-->
+    <update id="update" parameterType="BlogType">
+        UPDATE t_blogtype
+        <set>
+            <if test="typeName!=null and typeName!=''">
+                typeName=#{typeName},
+            </if>
+            <if test="orderNum!=null">
+                orderNum=#{orderNum}
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+
+    <!--删除博客类型-->
+    <delete id="delete" parameterType="Integer">
+        DELETE FROM t_blogtype WHERE id=#{id}
+    </delete>
+
+
+</mapper>
